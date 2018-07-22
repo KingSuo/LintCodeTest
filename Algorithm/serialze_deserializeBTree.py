@@ -19,13 +19,12 @@ There is no limit of how you deserialize or serialize a binary tree, LintCode wi
 你可以采用其他的方法进行序列化和反序列化。
 """
 
-"""
-Definition of TreeNode:
+
+# Definition of TreeNode:
 class TreeNode:
     def __init__(self, val):
         self.val = val
         self.left, self.right = None, None
-"""
 
 
 class Solution:
@@ -35,20 +34,36 @@ class Solution:
     to serialize a binary tree which denote by a root node to a string which
     can be easily deserialized by your own "deserialize" method later.
     """
+
     def serialize(self, root):
         # write your code here
+
         data = []
-        data += root.val
+        data += [root.val]
         if root.left is not None:
-            # data += root.left.val
-            data += self.serialize(root.left))
+            data += [root.left.val]
+            leftIsNone = False
         else:
-            data += ['#']
+            leftIsNone = True
+            data += '#'
         if root.right is not None:
-            # data += root.right.val
-            data += self.serialize(root.right))
+            data += [root.right.val]
+            rightIsNone = False
         else:
-            data += ['#']
+            rightIsNone = True
+            data += '#'
+        if leftIsNone and rightIsNone:
+            return data
+        elif leftIsNone and ~rightIsNone:
+            data += self.serialize(root.right)
+        elif ~leftIsNone and rightIsNone:
+            data += self.serialize(root.left)
+        else:
+            data += self.serialize(root.left)[1:]
+            data += self.serialize(root.right)[1:]
+
+        while data[-1] == '#':
+            data = data[:len(data) - 1]
         return data
 
     """
@@ -59,25 +74,82 @@ class Solution:
     designed by yourself, and deserialize it here as you serialize it in 
     "serialize" method.
     """
+
     def deserialize(self, data):
         # write your code here
-        root = TreeNode()
+
         if len(data) == 1:
-            root.val = data[0]
+            root = TreeNode(data[0])
         elif len(data) == 2:
-            root.val = data[0]
+            root = TreeNode(data[0])
             root.left = TreeNode(data[1])
         elif len(data) == 3:
-            root.val = data[0]
+            root = TreeNode(data[0])
             if data[1] != '#':
                 root.left = TreeNode(data[1])
             root.left = TreeNode(data[2])
         else:
+            leftIsNone = rightIsNone = False
+
+            def getSubRoot(new_data):
+                if len(new_data) == 0:
+                    return None
+                elif len(new_data) == 1:
+                    pass
+                else:
+                    sub_left, sub_right, *new_data = new_data
+                    return sub_left, sub_right, new_data
+
+            def setSubRoot(sub_root, left, right):
+                nonlocal leftIsNone
+                nonlocal rightIsNone
+                if left != '#':
+                    leftIsNone = False
+                    sub_root.left = TreeNode(left)
+                else:
+                    leftIsNone = True
+                if right != '#':
+                    rightIsNone = False
+                    sub_root.right = TreeNode(right)
+                else:
+                    rightIsNone = True
+            
             val, left, right, *new_data = data
-            root.val = val
-            if left != '#':
-                root.left = TreeNode(left)
-            if right != '#':
-                root.left = TreeNode(data[2])
-           
-        return root 
+            root = TreeNode(val)
+            setSubRoot(root, left, right)
+            sub_left, sub_right, *new_data = getSubRoot(new_data)
+            if leftIsNone and ~rightIsNone:
+                sub_root = root.right
+                setSubRoot(sub_root, sub_left, sub_root)
+            if rightIsNone and ~leftIsNone:
+                sub_root = root.left
+                setSubRoot(sub_root, sub_left, sub_root)
+
+        return root
+
+
+if __name__ == "__main__":
+    root = TreeNode(3)
+    root.left = TreeNode(9)
+    root.right = TreeNode(20)
+    root.right.left = TreeNode(15)
+    root.right.right = TreeNode(7)
+    root.right.right.left = TreeNode(25)
+    root.right.right.right = TreeNode(17)
+    s = Solution()
+    data = s.serialize(root)
+    print(data)
+
+    root = s.deserialize(data)
+    print(root.left.val)
+    print(root.right.val)
+    print(root.right.left.val)
+    print(root.right.right.val)
+    print(root.right.right.left.val)
+    print(root.right.right.right.val)
+    # print(root.right.right.left.val)
+    # print(root.right.right.right.val)
+
+
+
+
