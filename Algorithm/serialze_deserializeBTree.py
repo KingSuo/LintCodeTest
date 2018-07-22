@@ -118,12 +118,17 @@ class Solution:
             root = TreeNode(val)
             setSubRoot(root, left, right)
             sub_left, sub_right, *new_data = getSubRoot(new_data)
-            if leftIsNone and ~rightIsNone:
+            while leftIsNone and ~rightIsNone:
                 sub_root = root.right
                 setSubRoot(sub_root, sub_left, sub_root)
-            if rightIsNone and ~leftIsNone:
+            while rightIsNone and ~leftIsNone:
                 sub_root = root.left
                 setSubRoot(sub_root, sub_left, sub_root)
+            # while ~leftIsNone and ~rightIsNone:
+            #     sub_root = root.left
+            #     setSubRoot(sub_root, sub_left, sub_root)
+            #     sub_root = root.right
+            #     setSubRoot(sub_root, sub_left, sub_root)
 
         return root
 
@@ -141,6 +146,7 @@ if __name__ == "__main__":
     print(data)
 
     root = s.deserialize(data)
+    print(root.val)
     print(root.left.val)
     print(root.right.val)
     print(root.right.left.val)
